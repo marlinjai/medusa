@@ -72,6 +72,8 @@ jobs:
 
       - name: Install new app dependencies (via resolutions)
         run: pnpm install
+        env:
+          npm_config_node_linker: hoisted
         working-directory: ../cli-test
 
       - name: Run migrations
