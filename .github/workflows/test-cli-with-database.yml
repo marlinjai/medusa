@@ -67,35 +67,34 @@ jobs:
         run: |
           medusa new cli-test --skip-db --skip-migrations --v2 --branch ci-custom
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      # The starter's pnpm-lock.yaml is not kept in sync with its package.json,
-      # and pnpm freezes the lockfile in CI by default, so let it re-resolve.
-      - name: Install new app dependencies (via resolutions)
-        run: pnpm install --no-frozen-lockfile
-        env:
-          npm_config_node_linker: hoisted
-        working-directory: ../cli-test
+      # `medusa new` clones the dtc-starter monorepo and runs `pnpm install`
+      # itself; the Medusa application lives in apps/backend. Fail early and
+      # clearly if that install did not provide the backend's binaries.
+      - name: Check scaffolded backend
+        run: |
+          test -f medusa-config.ts
+          test -x node_modules/.bin/medusa
+          test -d node_modules/ts-node
+        working-directory: ../cli-test/apps/backend
 
       - name: Run migrations
         run: npx medusa db:migrate
-        working-directory: ../cli-test
+        working-directory: ../cli-test/apps/backend
 
       - name: Create admin user
         run: npx medusa user -e test@test.com -p password -i admin_123
-        working-directory: ../cli-test
+        working-directory: ../cli-test/apps/backend
 
       - name: Run development server
         run: npx medusa develop &
-        working-directory: ../cli-test
+        working-directory: ../cli-test/apps/backend
 
       - name: Testing development server
         uses: ./.github/actions/test-server
 
       - name: Starting medusa
         run: npx medusa start &
-        working-directory: ../cli-test
+        working-directory: ../cli-test/apps/backend
 
       - name: Testing server
         uses: ./.github/actions/test-server
