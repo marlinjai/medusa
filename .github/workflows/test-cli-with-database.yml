@@ -70,8 +70,10 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
+      # The starter's pnpm-lock.yaml is not kept in sync with its package.json,
+      # and pnpm freezes the lockfile in CI by default, so let it re-resolve.
       - name: Install new app dependencies (via resolutions)
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
         env:
           npm_config_node_linker: hoisted
         working-directory: ../cli-test
